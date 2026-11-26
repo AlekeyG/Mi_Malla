@@ -1,0 +1,536 @@
+import React, { useRef, useState } from 'react'
+import { Download, Upload, FlaskConical, Moon, Sun, Share2, Sparkles, Eye, EyeOff, FileQuestion, ShieldCheck, Lock, RotateCcw } from 'lucide-react'
+import { useCurriculum } from '../context/CurriculumContext'
+import { exportProgressJSON, bulkSaveCourseStatuses } from '../lib/db'
+import { ZUserProgressImport, type UserCourseRecord } from '../types/curriculum'
+import { ShareCardModal } from '../components/ShareCardModal'
+import { PWAInstallCard } from '../components/PWAInstallCard'
+import { PrivacyPolicyModal } from '../components/PrivacyPolicyModal'
+
+export const SettingsPage: React.FC = () => {
+  const {
+    theme,
+    toggleTheme,
+    isSimulationMode,
+    toggleSimulationMode,
+    resetProgress,
+    hasCustomPlan,
+    resetPlannedPeriods,
+    metrics,
+    hideDiagnosticsInMalla,
+    toggleHideDiagnosticsInMalla
+  } = useCurriculum()
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [importStatus, setImportStatus] = useState<string | null>(null)
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false)
+  const [showResetPlanConfirm, setShowResetPlanConfirm] = useState<boolean>(false)
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null)
+  const [showShareModal, setShowShareModal] = useState<boolean>(false)
+  const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false)
+
+
+  const handleExportJSON = async () => {
+    try {
+      const data = await exportProgressJSON('Administración de Empresas')
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `mi_malla_backup_${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Error al exportar respaldo:', err)
+    }
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const json = JSON.parse(text)
+
+      // Strict Zod Validation before touching Dexie.js
+      const validatedData = ZUserProgressImport.parse(json)
+
+      await bulkSaveCourseStatuses(validatedData.records as UserCourseRecord[])
+      setImportStatus('✅ Progreso importado con éxito.')
+      setTimeout(() => setImportStatus(null), 4000)
+    } catch (err) {
+      console.error('Error de validación al importar:', err)
+      setImportStatus('❌ Error: El archivo de respaldo está malformado o no es válido.')
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  return (
+    <div style={{ padding: '24px 20px', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '28px', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-sm)' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '6px' }}>Perfil, Respaldos & Simulación</h2>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+          Gestiona tus datos 100% offline, experimenta con escenarios simulados o transfiere tu progreso.
+        </p>
+      </div>
+
+      {/* PWA Direct Installation Card */}
+      <PWAInstallCard />
+
+      {/* Ficha de Personaje Compartible */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: '#FDF0EC', border: '1px solid var(--color-terracotta)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkles size={20} color="var(--color-terracotta)" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Ficha de Avance Compartible</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              Genera tu tarjeta resumen con tu avance ({metrics.completedCredits}/{metrics.totalCredits} cr · {Math.round(metrics.completionPercentage)}%).
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowShareModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-full)',
+            border: 'none',
+            backgroundColor: 'var(--color-terracotta)',
+            color: '#FFFFFF',
+            fontWeight: 700,
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          <Share2 size={16} />
+          Ver Ficha
+        </button>
+      </div>
+
+      <ShareCardModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} />
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FlaskConical size={20} color="#D97706" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Modo Simulación ("What-If")</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                Prueba marcar materias para planificar semestres futuros sin alterar tus datos reales.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={toggleSimulationMode}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-full)',
+              border: isSimulationMode ? '2px solid #D97706' : '1px solid var(--border-card)',
+              backgroundColor: isSimulationMode ? '#FEF3C7' : 'var(--bg-main)',
+              color: isSimulationMode ? '#92400E' : 'var(--text-primary)',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+          >
+            {isSimulationMode ? 'Simulación Activa' : 'Activar Simulación'}
+          </button>
+        </div>
+      </div>
+
+      {/* Exportar e Importar Progreso */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Copia de Seguridad y Portabilidad (100% Offline)</h3>
+
+        {importStatus && (
+          <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-card-muted)', fontSize: '13px', fontWeight: 600 }}>
+            {importStatus}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          <button
+            onClick={handleExportJSON}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '12px 18px',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              backgroundColor: 'var(--color-terracotta)',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            <Download size={16} />
+            Exportar Progreso (.json)
+          </button>
+
+          <input
+            type="file"
+            accept=".json"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '12px 18px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-card)',
+              backgroundColor: 'var(--bg-main)',
+              color: 'var(--text-primary)',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            <Upload size={16} />
+            Importar Progreso (.json)
+          </button>
+        </div>
+      </div>
+
+
+
+      {/* Configuración de Pruebas Diagnósticas */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(67, 56, 202, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FileQuestion size={20} color="#4338CA" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Pruebas Diagnósticas & Promedio</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              Las pruebas de diagnóstico nivelatorio son asignaturas de <strong>0 créditos</strong>. Puedes registrarles una nota para tu seguimiento personal, pero al tener 0 créditos <strong>no afectan ni suman al promedio ponderado (GPA)</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-card)' }}>
+          <div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Visibilidad de Diagnósticos en la Malla
+            </span>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              {hideDiagnosticsInMalla
+                ? 'Las 6 pruebas diagnósticas están ocultas en la vista de Malla.'
+                : 'Las 6 pruebas diagnósticas son visibles en la malla.'}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleHideDiagnosticsInMalla}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-full)',
+              border: hideDiagnosticsInMalla ? '2px solid var(--color-steel)' : '1px solid var(--border-card)',
+              backgroundColor: hideDiagnosticsInMalla ? 'var(--bg-card-muted)' : 'var(--bg-main)',
+              color: 'var(--text-primary)',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              touchAction: 'manipulation'
+            }}
+          >
+            {hideDiagnosticsInMalla ? <EyeOff size={16} color="var(--color-steel)" /> : <Eye size={16} color="var(--color-terracotta)" />}
+            {hideDiagnosticsInMalla ? 'Diagnósticos Ocultos' : 'Diagnósticos Visibles'}
+          </button>
+        </div>
+      </div>
+
+      {/* Reglamento Estudiantil: Permanencia Académica */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(22, 163, 74, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ShieldCheck size={20} color="#16A34A" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Permanencia Académica (Reglamento Estudiantil)</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              El <strong>promedio ponderado acumulado nunca puede ser inferior a 3.2</strong>. Si cae por debajo de este límite, se pierde la calidad de estudiante. Para alumnos de 1º semestre, el promedio de dicho período actúa como su acumulado inicial.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Privacidad de Datos y Términos de Uso */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: 'rgba(115, 72, 47, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Lock size={20} color="var(--color-terracotta)" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Privacidad & Términos de Uso</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              Tus datos son 100% locales en tu dispositivo. Conoce nuestra política y deslindes.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowPrivacyModal(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--color-terracotta)',
+            backgroundColor: '#FDF0EC',
+            color: 'var(--color-terracotta)',
+            fontWeight: 700,
+            fontSize: '12px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          Ver Políticas
+        </button>
+      </div>
+
+      {/* Selector de Tema */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Apariencia de Interfaz</h3>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            Alternar entre Modo Claro (Warm & Clean) y Modo Gris (Suave para la vista).
+          </p>
+        </div>
+
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--border-card)',
+            backgroundColor: 'var(--bg-main)',
+            color: 'var(--text-primary)',
+            fontWeight: 700,
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} color="var(--color-sand)" />}
+          {theme === 'light' ? 'Modo Gris' : 'Modo Claro'}
+        </button>
+      </div>
+
+      {/* Restablecer Malla y Progreso */}
+      <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '24px', border: '1px solid var(--border-card)', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-card-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <RotateCcw size={20} color="var(--color-steel)" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Restablecer Malla y Progreso</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                {hasCustomPlan
+                  ? 'Devuelve las materias reubicadas o intersemestrales a su semestre oficial conservando tus notas y aprobadas.'
+                  : 'Actualmente todas las materias están en su semestre oficial.'}
+              </p>
+            </div>
+          </div>
+
+          {hasCustomPlan && showResetPlanConfirm ? (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-terracotta)' }}>¿Restaurar orden?</span>
+              <button
+                type="button"
+                onClick={async () => {
+                  await resetPlannedPeriods()
+                  setShowResetPlanConfirm(false)
+                }}
+                style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: 'none', backgroundColor: 'var(--color-terracotta)', color: '#FFFFFF', fontWeight: 700, fontSize: '12px', cursor: 'pointer', touchAction: 'manipulation' }}
+              >
+                Sí
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowResetPlanConfirm(false)}
+                style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-card)', backgroundColor: 'var(--bg-main)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '12px', cursor: 'pointer', touchAction: 'manipulation' }}
+              >
+                No
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled={!hasCustomPlan}
+              onClick={() => setShowResetPlanConfirm(true)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--border-card)',
+                backgroundColor: 'var(--bg-main)',
+                color: 'var(--color-steel)',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: hasCustomPlan ? 'pointer' : 'not-allowed',
+                opacity: hasCustomPlan ? 1 : 0.5,
+                whiteSpace: 'nowrap',
+                touchAction: 'manipulation'
+              }}
+            >
+              Restaurar orden oficial
+            </button>
+          )}
+        </div>
+
+        {/* Zona de Peligro: Reiniciar todo el progreso */}
+        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div>
+            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#DC2626' }}>Reiniciar todo el progreso</h4>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              Desmarca todas las materias, borra tus notas y nombres de electivas, y devuelve la malla a su orden oficial.
+            </p>
+          </div>
+
+          {showResetConfirm ? (
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#DC2626' }}>¿Confirmas reiniciar todo?</span>
+              <button
+                type="button"
+                onClick={async () => {
+                  await resetProgress()
+                  setShowResetConfirm(false)
+                }}
+                style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: 'none', backgroundColor: '#DC2626', color: '#FFFFFF', fontWeight: 700, fontSize: '12px', cursor: 'pointer', touchAction: 'manipulation' }}
+              >
+                Sí, reiniciar
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowResetConfirm(false)}
+                style={{ padding: '6px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-card)', backgroundColor: 'var(--bg-main)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '12px', cursor: 'pointer', touchAction: 'manipulation' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowResetConfirm(true)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid #FCA5A5',
+                backgroundColor: '#FEF2F2',
+                color: '#DC2626',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                touchAction: 'manipulation'
+              }}
+            >
+              Reiniciar todo
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Share Modal */}
+      {showShareModal && <ShareCardModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} />}
+
+      {/* Privacy Policy & Terms Modal */}
+      <PrivacyPolicyModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} />
+
+      {/* Información de Versión y Actualización PWA */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '12px 16px',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'var(--bg-card-muted)',
+          border: '1px solid var(--border-card)',
+          fontSize: '12px',
+          color: 'var(--text-secondary)'
+        }}
+      >
+        <span>
+          <strong>Mi Malla</strong> v{__APP_VERSION__} · Compilación {__BUILD_DATE__}
+          {updateStatus && (
+            <span style={{ marginLeft: '8px', fontWeight: 600, color: 'var(--color-terracotta)' }}>
+              · {updateStatus}
+            </span>
+          )}
+        </span>
+        <button
+          onClick={async () => {
+            if (!('serviceWorker' in navigator)) {
+              setUpdateStatus('No disponible en este navegador.')
+              return
+            }
+            setUpdateStatus('Buscando...')
+            try {
+              const reg = await navigator.serviceWorker.getRegistration()
+              if (!reg) {
+                setUpdateStatus('✓ Ya tienes la última versión.')
+              } else {
+                await reg.update()
+                if (reg.installing || reg.waiting) {
+                  setUpdateStatus('Actualización encontrada, aplicando...')
+                } else {
+                  setUpdateStatus('✓ Ya tienes la última versión.')
+                }
+              }
+            } catch {
+              setUpdateStatus('Sin conexión para verificar.')
+            }
+            setTimeout(() => setUpdateStatus(null), 4000)
+          }}
+          style={{
+            padding: '5px 12px',
+            borderRadius: 'var(--radius-full)',
+            border: '1px solid var(--border-card)',
+            backgroundColor: 'var(--bg-card)',
+            color: 'var(--text-primary)',
+            fontWeight: 600,
+            fontSize: '11px',
+            cursor: 'pointer'
+          }}
+        >
+          Buscar actualización
+        </button>
+      </div>
+    </div>
+  )
+}
+

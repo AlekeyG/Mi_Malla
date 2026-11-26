@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="iconShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="8" stdDeviation="8" flood-color="#232B38" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- Clean ivory background for app icon / favicon container -->
+  <rect width="512" height="512" rx="110" fill="#F8F7F4" />
+
+  <!-- Graphic Isotype centered in square -->
+  <g filter="url(#iconShadow)">
+    <!-- Connecting diagonal line -->
+    <line x1="140" y1="360" x2="360" y2="140" stroke="#7A98BF" stroke-width="20" stroke-linecap="round" />
+
+    <!-- Node 1: Bottom-left open ring -->
+    <circle cx="140" cy="360" r="42" fill="#FFFFFF" stroke="#7A98BF" stroke-width="18" />
+
+    <!-- Node 2: Middle solid filled circle -->
+    <circle cx="250" cy="250" r="46" fill="#7A98BF" stroke="#FFFFFF" stroke-width="6" />
+
+    <!-- Node 3: Top-right rounded diamond (square rotated 45°) -->
+    <g transform="translate(360, 140)">
+      <rect x="-52" y="-52" width="104" height="104" rx="24" ry="24" fill="#73482F" transform="rotate(45)" stroke="#FFFFFF" stroke-width="6" />
+      <!-- Star icon inside diamond -->
+      <polygon points="0,-28 9,-9 28,-5 14,9 18,28 0,18 -18,28 -14,9 -28,-5 -9,-9" fill="#FFFFFF" />
+    </g>
+  </g>
+</svg>

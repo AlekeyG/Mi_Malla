@@ -1,0 +1,230 @@
+/* ==========================================================================
+   MI MALLA — SYSTEM DESIGN & TOKENS (CLEAN & WARM LIGHT MODE + DARK MODE OPTION)
+   ========================================================================== */
+
+:root {
+  /* Official 5-Color Palette */
+  --color-slate-light: #A4ADBF; /* Soft borders, locked cards */
+  --color-slate-mid:   #7A98BF; /* Area badges, in-progress courses */
+  --color-steel:       #6D86A6; /* Structure, icons, borders, subheadings */
+  --color-sand:        #D9D3C7; /* Secondary card bg, subtle glow accents */
+  --color-terracotta:  #73482F; /* Key Accent: completed courses, buttons, XP bar */
+
+  /* Clean & Warm Light Mode Environment */
+  --bg-main:           #F8F7F4; /* Light ivory/sand main background */
+  --bg-card:           #FFFFFF; /* Pure white card surface */
+  --bg-card-muted:     #EFECE6; /* Locked / fogged cards */
+  --bg-card-hover:     #F3F0EA; /* Subtle hover state */
+  --border-card:       rgba(164, 173, 191, 0.35); /* Subtle border */
+  
+  --text-primary:      #232B38; /* Deep high-contrast text (WCAG AAA) */
+  --text-secondary:    #5A6B82; /* Subtitles, hours, metadata */
+  --text-terracotta:   #73482F; /* Highlighted text & headers */
+  --text-white:        #FFFFFF;
+
+  /* Toast Notification Tokens */
+  --bg-toast:          #232B38;
+  --text-toast:        #FFFFFF;
+  --text-toast-action: #D9D3C7;
+
+  /* Node States Visual Tokens */
+  --node-locked-bg:    #EFECE6;
+  --node-locked-border:#A4ADBF;
+  --node-unlocked-bg:  #FFFFFF;
+  --node-unlocked-border: #6D86A6;
+  --node-progress-bg:  #FFFFFF;
+  --node-progress-border: #7A98BF;
+  --node-completed-bg: #F5EBE4;
+  --node-completed-border: #73482F;
+  --node-inter-bg:     #F5F3FF;
+  --node-inter-border: #7C3AED;
+  --node-failed-bg:    #FDF2F2;
+  --node-failed-border: #E53E3E;
+
+  /* Typography Stack */
+  --font-heading:      'Outfit', system-ui, -apple-system, sans-serif;
+  --font-body:         'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Shadows & Elevation */
+  --shadow-sm:         0 1px 3px rgba(35, 43, 56, 0.05);
+  --shadow-md:         0 4px 12px rgba(35, 43, 56, 0.08);
+  --shadow-lg:         0 10px 25px rgba(35, 43, 56, 0.12);
+  --shadow-terracotta: 0 4px 14px rgba(115, 72, 47, 0.25);
+  --shadow-glow-req:   0 0 0 3px rgba(217, 119, 6, 0.22), 0 8px 18px rgba(217, 119, 6, 0.28);
+  --shadow-glow-next:  0 0 0 3px rgba(13, 148, 136, 0.24), 0 8px 20px rgba(13, 148, 136, 0.30);
+
+  /* Safe Area Insets (Mobile ergonomics) */
+  --safe-bottom:       max(16px, env(safe-area-inset-bottom));
+  --safe-top:          max(16px, env(safe-area-inset-top));
+
+  /* Border Radius System */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+}
+
+/* Eye-Friendly Soft Gray Mode (Optional Toggle in Settings) */
+[data-theme="dark"] {
+  --color-terracotta:  #3D9970;
+  --color-steel:       #8FA7C4;
+  --color-slate-mid:   #87A7D0;
+
+  --bg-main:           #2B303A;
+  --bg-card:           #353B47;
+  --bg-card-muted:     #3F4654;
+  --bg-card-hover:     #464E5E;
+  --border-card:       rgba(180, 190, 208, 0.22);
+
+  --text-primary:      #E6E8EC;
+  --text-secondary:    #AEB7C6;
+  --text-terracotta:   #74C69D;
+
+  --bg-toast:          #232831;
+  --text-toast:        #E6E8EC;
+  --text-toast-action: #74C69D;
+
+  --node-locked-bg:    #2F343F;
+  --node-locked-border:#4D5668;
+  --node-unlocked-bg:  #3A414E;
+  --node-unlocked-border: #7E97B8;
+  --node-progress-bg:  #364152;
+  --node-progress-border: #87A7D0;
+  --node-completed-bg: #2F423B;
+  --node-completed-border: #52B788;
+  --node-inter-bg:     #3D354F;
+  --node-inter-border: #B39DF8;
+  --node-failed-bg:    #473236;
+  --node-failed-border:#F87171;
+
+  --shadow-sm:         0 1px 3px rgba(0, 0, 0, 0.18);
+  --shadow-md:         0 4px 12px rgba(0, 0, 0, 0.24);
+  --shadow-terracotta: 0 4px 14px rgba(82, 183, 136, 0.20);
+}
+
+/* ==========================================================================
+   RESET & BASE STYLES
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-slate-light);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-steel);
+}
+
+/* Utility Animations & Transitions */
+.transition-all {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Glassmorphism Navigation Bar */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-card);
+}
+
+[data-theme="dark"] .glass-panel {
+  background: rgba(53, 59, 71, 0.88);
+}
+
+/* Accessibility Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--color-terracotta);
+  outline-offset: 2px;
+}
+
+/* Recharts & SVG Focus / Touch Highlight Reset */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-responsive-container,
+.recharts-wrapper *:focus,
+.recharts-surface *:focus,
+.recharts-wrapper *:focus-visible,
+.recharts-surface *:focus-visible,
+.recharts-polar-grid,
+.recharts-polar-angle-axis,
+.recharts-radar {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Reduced Motion for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
