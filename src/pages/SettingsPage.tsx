@@ -495,7 +495,48 @@ export const SettingsPage: React.FC = () => {
         </span>
         <button
           type="button"
-          onClick={() => setConfirmUpdate(prev => !prev)}
+          onClick={async () => {
+            setConfirmUpdate(false)
+            setUpdateStatus('Buscando actualizaciones...')
+            try {
+              let hasUpdate = false
+              if ('serviceWorker' in navigator) {
+                const reg = await navigator.serviceWorker.getRegistration()
+                if (reg) {
+                  await reg.update()
+                  if (reg.installing || reg.waiting) {
+                    hasUpdate = true
+                  }
+                }
+              }
+
+              if (!hasUpdate) {
+                const res = await fetch(`./index.html?t=${Date.now()}`, { cache: 'no-store' })
+                if (res.ok) {
+                  const html = await res.text()
+                  const remoteBundle = html.match(/assets\/index-[^"']+\.js/)?.[0]
+                  const localScriptSrc = document
+                    .querySelector('script[type="module"][src*="assets/index-"]')
+                    ?.getAttribute('src')
+                  const localBundle = localScriptSrc?.match(/assets\/index-[^"']+\.js/)?.[0]
+                  if (remoteBundle && localBundle && remoteBundle !== localBundle) {
+                    hasUpdate = true
+                  }
+                }
+              }
+
+              if (hasUpdate) {
+                setUpdateStatus('Nueva versión disponible')
+                setConfirmUpdate(true)
+              } else {
+                setUpdateStatus('✓ Ya tienes la versión actual.')
+                setTimeout(() => setUpdateStatus(null), 4000)
+              }
+            } catch {
+              setUpdateStatus('Sin conexión para verificar actualizaciones.')
+              setTimeout(() => setUpdateStatus(null), 4000)
+            }
+          }}
           style={{
             padding: '5px 12px',
             borderRadius: 'var(--radius-full)',
@@ -525,12 +566,15 @@ export const SettingsPage: React.FC = () => {
             }}
           >
             <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              Se limpiará la caché y el Service Worker para descargar la última versión. Tu progreso, notas y configuraciones no se borrarán.
+              Hay una nueva versión disponible. Se limpiará la caché y el Service Worker para instalarla; tu progreso, notas y configuraciones no se borrarán.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                onClick={() => setConfirmUpdate(false)}
+                onClick={() => {
+                  setConfirmUpdate(false)
+                  setUpdateStatus(null)
+                }}
                 style={{
                   padding: '5px 12px',
                   borderRadius: 'var(--radius-sm)',
