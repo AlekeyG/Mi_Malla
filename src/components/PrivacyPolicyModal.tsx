@@ -129,7 +129,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
           </div>
           <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
             <strong>Mi Malla</strong> opera bajo una arquitectura <em>Local-First</em>. Toda tu información académica,
-            incluyendo asignaturas aprobadas, calificaciones opcionales, notas de electivas y puntos de XP acumulados,
+            incluyendo asignaturas aprobadas, calificaciones opcionales, notas de electivas y planificación de semestres,
             permanece guardada exclusivamente en la base de datos local de tu navegador (<code>IndexedDB</code>).
           </p>
           <ul style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)', paddingLeft: '20px' }}>
@@ -168,6 +168,10 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
             ⚠️ <strong>Descargo Institucional:</strong> Esta aplicación no reemplaza el Portal Académico ni las plataformas oficiales de registro de la Universidad de Cundinamarca. La validación legal de asignaturas matriculadas, paz y salvos y promedios oficiales se rige exclusivamente por los sistemas institucionales y el Reglamento Estudiantil (REA).
           </p>
         </div>
+
+        <p style={{ fontSize: '11.5px', lineHeight: 1.5, color: 'var(--text-secondary)', margin: '4px 0 0', opacity: 0.85 }}>
+          Créditos: iniciativa y diseño por <strong>AlekeyG</strong>, desarrollado con asistencia de <strong>Google DeepMind</strong>.
+        </p>
 
         {/* Footer button */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
