@@ -26,6 +26,7 @@ export const SettingsPage: React.FC = () => {
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false)
   const [showResetPlanConfirm, setShowResetPlanConfirm] = useState<boolean>(false)
   const [updateStatus, setUpdateStatus] = useState<string | null>(null)
+  const [confirmUpdate, setConfirmUpdate] = useState<boolean>(false)
   const [showShareModal, setShowShareModal] = useState<boolean>(false)
   const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false)
 
@@ -493,29 +494,8 @@ export const SettingsPage: React.FC = () => {
           )}
         </span>
         <button
-          onClick={async () => {
-            if (!('serviceWorker' in navigator)) {
-              setUpdateStatus('No disponible en este navegador.')
-              return
-            }
-            setUpdateStatus('Buscando...')
-            try {
-              const reg = await navigator.serviceWorker.getRegistration()
-              if (!reg) {
-                setUpdateStatus('✓ Ya tienes la última versión.')
-              } else {
-                await reg.update()
-                if (reg.installing || reg.waiting) {
-                  setUpdateStatus('Actualización encontrada, aplicando...')
-                } else {
-                  setUpdateStatus('✓ Ya tienes la última versión.')
-                }
-              }
-            } catch {
-              setUpdateStatus('Sin conexión para verificar.')
-            }
-            setTimeout(() => setUpdateStatus(null), 4000)
-          }}
+          type="button"
+          onClick={() => setConfirmUpdate(prev => !prev)}
           style={{
             padding: '5px 12px',
             borderRadius: 'var(--radius-full)',
@@ -527,8 +507,79 @@ export const SettingsPage: React.FC = () => {
             cursor: 'pointer'
           }}
         >
-          Buscar actualización
+          Buscar actualizaciones
         </button>
+
+        {confirmUpdate && (
+          <div
+            style={{
+              width: '100%',
+              marginTop: '4px',
+              padding: '10px 12px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-card)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}
+          >
+            <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+              Se limpiará la caché y el Service Worker para descargar la última versión. Tu progreso, notas y configuraciones no se borrarán.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setConfirmUpdate(false)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--border-card)',
+                  backgroundColor: 'var(--bg-main)',
+                  color: 'var(--text-primary)',
+                  fontWeight: 600,
+                  fontSize: '11px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setConfirmUpdate(false)
+                  setUpdateStatus('Actualizando y limpiando caché...')
+                  try {
+                    if ('caches' in window) {
+                      const keys = await window.caches.keys()
+                      await Promise.all(keys.map(k => window.caches.delete(k)))
+                    }
+                    if ('serviceWorker' in navigator) {
+                      const regs = await navigator.serviceWorker.getRegistrations()
+                      await Promise.all(regs.map(r => r.unregister()))
+                    }
+                    window.location.reload()
+                  } catch {
+                    setUpdateStatus('No se pudo actualizar. Verifica tu conexión.')
+                    setTimeout(() => setUpdateStatus(null), 4000)
+                  }
+                }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: 'none',
+                  backgroundColor: 'var(--color-terracotta)',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  cursor: 'pointer'
+                }}
+              >
+                Confirmar y actualizar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
