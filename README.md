@@ -19,7 +19,7 @@
 - **Malla curricular interactiva**: visualización de los 9 semestres (más semestres adicionales e intersemestrales) con desbloqueo automático según el grafo real de prerrequisitos.
 - **Modos de interacción**:
   - **Modo normal**: consulta detalle, requisitos, notas y estado de cada materia.
-  - **Modo ruta**: mantén presionada una materia en celular (o pasa el puntero en PC) para resaltar sus requisitos previos y las materias que desbloquea; en celular puedes tocar otra materia para cambiar de ruta al instante.
+  - **Modo ruta**: pulsa el botón **Modo Ruta** (en celular o PC) o mantén presionada una materia en celular para resaltar sus requisitos previos y las materias que desbloquea; toca cualquier materia para fijar o cambiar de ruta.
   - **Modo edición**: reorganiza materias entre semestres o hacia intersemestrales por arrastre (en celular sostén brevemente antes de arrastrar), con alertas de sobrecarga de 18 créditos y conflictos de requisitos en el mismo semestre.
 - **Promedio ponderado y métricas**: cálculo automático del GPA semestral y acumulado (Art. 42 y Art. 44), avance por áreas temáticas y personalización de electivas.
 - **Modo Simulación (*What-If*) y respaldo JSON**: prueba cambios sin alterar tu historial real y exporta/importa tu avance en `.json` desde **Ajustes** (almacenamiento 100% local en `IndexedDB`).

@@ -405,16 +405,16 @@ export const PWAPresentationPage: React.FC = () => {
               }}
             >
               <p style={{ margin: 0 }}>
-                <strong style={{ color: 'var(--text-primary)' }}>Modo normal:</strong> toca cualquier materia para ver sus requisitos, cambiar su estado o registrar su nota.
+                <strong style={{ color: 'var(--text-primary)' }}>Modo normal:</strong> toca o haz clic en cualquier materia para abrir su detalle, aprobarla, cambiar su estado o registrar su nota.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: 'var(--text-primary)' }}>Modo ruta:</strong> mantén presionada una materia en celular (o pasa el puntero en PC) para resaltar sus requisitos previos y lo que desbloquea. En celular, toca otra materia para cambiar de ruta al instante.
+                <strong style={{ color: 'var(--text-primary)' }}>Modo ruta:</strong> pulsa el botón <em>Modo Ruta</em> (en celular o PC) o mantén presionada una materia en celular para resaltar sus requisitos previos y lo que desbloquea. Dentro de este modo, toca cualquier materia para fijar o cambiar su ruta y usa el botón rápido para aprobar.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: 'var(--text-primary)' }}>Modo edición:</strong> dentro del Modo ruta mantén presionada una materia (o pulsa <em>Organizar Malla</em>) para mover materias entre semestres o a intersemestrales; en celular sostén brevemente antes de arrastrar. Las sobrecargas y conflictos de requisitos en el mismo semestre se marcan automáticamente.
+                <strong style={{ color: 'var(--text-primary)' }}>Modo edición:</strong> pulsa <em>Organizar Malla</em> (o mantén presionada una materia dentro del Modo ruta en celular) para mover materias entre semestres o a intersemestrales (en celular sostén brevemente antes de arrastrar) y aprobar rápido. Las sobrecargas de 18 créditos y los conflictos de requisitos en el mismo semestre se marcan automáticamente.
               </p>
               <p style={{ margin: 0 }}>
-                <strong style={{ color: 'var(--text-primary)' }}>Salir rápido:</strong> toca <em>Listo</em> o usa el botón <em>Atrás</em> del celular.
+                <strong style={{ color: 'var(--text-primary)' }}>Salir rápido:</strong> pulsa <em>Listo</em> en la barra inferior o usa el botón <em>Atrás</em> del celular.
               </p>
             </div>
           )}
