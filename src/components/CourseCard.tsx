@@ -125,20 +125,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     }
   }
 
-  // Only activate hover Chain Glow for real mouse pointers (prevents mobile double-tap hover trap)
-  const handlePointerEnter = (e: React.PointerEvent) => {
-    if (isOverlay || isRouteMode || e.pointerType !== 'mouse') return
-    setFocusedCourseCode(course.code)
-  }
-
   const handlePointerLeave = (e: React.PointerEvent) => {
     if (e.pointerType === 'touch' || e.pointerType === 'pen') {
       clearLongPressTimer()
-      return
-    }
-    if (isOverlay || isRouteMode || e.pointerType !== 'mouse') return
-    if (focusedCourseCode === course.code) {
-      setFocusedCourseCode(null)
     }
   }
 
@@ -152,17 +141,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     }
     e.stopPropagation()
     if (isOrganizeMode) return
-    if (isRouteMode) {
+    if (isRouteMode || focusedCourseCode !== null) {
       setFocusedCourseCode(course.code)
       return
-    }
-    const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches
-    if (!canHover && focusedCourseCode !== null) {
-      setFocusedCourseCode(course.code)
-      return
-    }
-    if (canHover) {
-      setFocusedCourseCode(course.code)
     }
     setInspectedCourseCode(course.code)
   }
@@ -262,7 +243,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       onPointerMove={handlePointerMove}
       onPointerUp={clearLongPressTimer}
       onPointerCancel={clearLongPressTimer}
-      onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}
       onContextMenu={e => {
         if (longPressTriggeredRef.current || longPressTimerRef.current) {

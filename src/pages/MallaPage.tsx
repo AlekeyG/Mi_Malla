@@ -443,9 +443,6 @@ export const MallaPage: React.FC = () => {
   } = useCurriculum()
 
   // Compact panoramic view (persisted in localStorage, defaults to true on desktop >= 1024px)
-  const isDesktopPointer =
-    typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches
-
   const [isCompactView, setIsCompactView] = useState<boolean>(() => {
     try {
       const saved = window.localStorage.getItem('mi_malla_compact_view')
@@ -799,31 +796,29 @@ export const MallaPage: React.FC = () => {
             {isOrganizeMode ? 'Listo (Organizando)' : 'Organizar Malla'}
           </button>
 
-          {isDesktopPointer && (
-            <button
-              type="button"
-              onClick={toggleRouteMode}
-              aria-pressed={isRouteMode}
-              title="Fijar rutas de requisitos al hacer clic en materias"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 14px',
-                borderRadius: 'var(--radius-full)',
-                border: isRouteMode ? '2px solid var(--color-steel)' : '1px solid var(--border-card)',
-                backgroundColor: isRouteMode ? 'var(--color-steel)' : 'var(--bg-card)',
-                color: isRouteMode ? '#FFFFFF' : 'var(--text-primary)',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: 'var(--shadow-sm)'
-              }}
-            >
-              <GitBranch size={14} />
-              {isRouteMode ? 'Modo Ruta (Activo)' : 'Modo Ruta'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={toggleRouteMode}
+            aria-pressed={isRouteMode}
+            title="Fijar rutas de requisitos al hacer clic en materias"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              borderRadius: 'var(--radius-full)',
+              border: isRouteMode ? '2px solid var(--color-steel)' : '1px solid var(--border-card)',
+              backgroundColor: isRouteMode ? 'var(--color-steel)' : 'var(--bg-card)',
+              color: isRouteMode ? '#FFFFFF' : 'var(--text-primary)',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <GitBranch size={14} />
+            {isRouteMode ? 'Modo Ruta (Activo)' : 'Modo Ruta'}
+          </button>
 
           <button
             onClick={() => setIsCompactView(prev => !prev)}
