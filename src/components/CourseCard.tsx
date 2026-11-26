@@ -35,6 +35,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     gradesMap,
     toggleCourseStatus,
     setInspectedCourseCode,
+    isRouteMode,
     focusedCourseCode,
     setFocusedCourseCode,
     showCourseChainInMalla,
@@ -126,7 +127,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
 
   // Only activate hover Chain Glow for real mouse pointers (prevents mobile double-tap hover trap)
   const handlePointerEnter = (e: React.PointerEvent) => {
-    if (isOverlay || e.pointerType !== 'mouse') return
+    if (isOverlay || isRouteMode || e.pointerType !== 'mouse') return
     setFocusedCourseCode(course.code)
   }
 
@@ -135,7 +136,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       clearLongPressTimer()
       return
     }
-    if (isOverlay || e.pointerType !== 'mouse') return
+    if (isOverlay || isRouteMode || e.pointerType !== 'mouse') return
     if (focusedCourseCode === course.code) {
       setFocusedCourseCode(null)
     }
@@ -151,6 +152,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({
     }
     e.stopPropagation()
     if (isOrganizeMode) return
+    if (isRouteMode) {
+      setFocusedCourseCode(course.code)
+      return
+    }
     const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches
     if (!canHover && focusedCourseCode !== null) {
       setFocusedCourseCode(course.code)

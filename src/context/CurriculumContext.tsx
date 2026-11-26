@@ -63,6 +63,8 @@ interface CurriculumContextType {
   toggleHideDiagnosticsInMalla: () => Promise<void>
 
   // Chain Glow Focus State
+  isRouteMode: boolean
+  toggleRouteMode: () => void
   focusedCourseCode: string | null
   setFocusedCourseCode: (code: string | null) => void
   showCourseChainInMalla: (code: string) => void
@@ -113,6 +115,7 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [simulatedStatuses, setSimulatedStatuses] = useState<Map<string, CourseStatusType>>(new Map())
   const [simulatedPlannedPeriods, setSimulatedPlannedPeriods] = useState<Map<string, number>>(new Map())
   const [isOrganizeMode, setIsOrganizeMode] = useState<boolean>(false)
+  const [isRouteMode, setIsRouteMode] = useState<boolean>(false)
   const [manualExtraPeriods, setManualExtraPeriods] = useState<number>(0)
   const [undoState, setUndoState] = useState<UndoAction | null>(null)
   const [modeToastMessage, setModeToastMessage] = useState<string | null>(null)
@@ -467,6 +470,7 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isOrganizeModeRef.current = active
     setIsOrganizeMode(active)
     if (active) {
+      setIsRouteMode(false)
       focusedCourseCodeRef.current = null
       setFocusedCourseCode(null)
       if (typeof window !== 'undefined' && window.history) {
@@ -486,6 +490,21 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const toggleOrganizeMode = () => {
     setOrganizeMode(!isOrganizeModeRef.current)
+  }
+
+  const toggleRouteMode = () => {
+    setIsRouteMode(prev => {
+      const next = !prev
+      if (next) {
+        if (isOrganizeModeRef.current) {
+          setOrganizeMode(false)
+        }
+      } else {
+        focusedCourseCodeRef.current = null
+        setFocusedCourseCode(null)
+      }
+      return next
+    })
   }
 
   const addExtraPeriod = (): number | null => {
@@ -694,6 +713,8 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         resetPlannedPeriods,
         hideDiagnosticsInMalla,
         toggleHideDiagnosticsInMalla,
+        isRouteMode,
+        toggleRouteMode,
         focusedCourseCode,
         setFocusedCourseCode,
         showCourseChainInMalla,
