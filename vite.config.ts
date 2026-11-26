@@ -13,11 +13,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.svg', 'robots.txt'],
+      includeAssets: ['cundinamarca-icon.png', 'apple-touch-icon.png', 'robots.txt'],
       manifest: {
-        name: 'Mi Malla — Skill Tree Universitario',
+        name: 'Mi Malla',
         short_name: 'Mi Malla',
-        description: 'Rastreador interactivo de malla curricular universitaria con estética Skill Tree RPG 100% offline.',
+        description: 'Rastreador interactivo de malla curricular universitaria 100% offline.',
         theme_color: '#F8F7F4',
         background_color: '#F8F7F4',
         display: 'standalone',
@@ -43,12 +43,6 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
-          },
-          {
-            src: 'logo.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any'
           }
         ]
       },

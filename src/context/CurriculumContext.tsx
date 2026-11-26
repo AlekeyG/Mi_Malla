@@ -100,7 +100,13 @@ const CurriculumContext = createContext<CurriculumContextType | null>(null)
 export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(1)
   const [activeTab, setActiveTabState] = useState<'malla' | 'analytics' | 'settings' | 'about'>('malla')
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      return window.localStorage.getItem('mi_malla_theme') === 'dark' ? 'dark' : 'light'
+    } catch {
+      return 'light'
+    }
+  })
   const [inspectedCourseCode, setInspectedCourseCodeState] = useState<string | null>(null)
   const [focusedCourseCode, setFocusedCourseCode] = useState<string | null>(null)
   const [isSimulationMode, setIsSimulationMode] = useState<boolean>(false)
@@ -302,15 +308,32 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }
 
-  // Diagnostics visibility state (instant in-RAM state hydrated from IndexedDB)
-  const [hideDiagnosticsInMalla, setHideDiagnosticsInMalla] = useState<boolean>(false)
+  // Diagnostics visibility state (instant in-RAM state hydrated from localStorage + IndexedDB)
+  const [hideDiagnosticsInMalla, setHideDiagnosticsInMalla] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem('mi_malla_hide_diagnostics') === 'true'
+    } catch {
+      return false
+    }
+  })
 
   React.useEffect(() => {
     db.user_settings
       .get('hideDiagnosticsInMalla')
       .then(rec => {
+        try {
+          if (window.localStorage.getItem('mi_malla_hide_diagnostics') !== null) return
+        } catch {
+          // ignore
+        }
         if (rec) {
-          setHideDiagnosticsInMalla(rec.value === true || rec.value === 'true')
+          const val = rec.value === true || rec.value === 'true'
+          setHideDiagnosticsInMalla(val)
+          try {
+            window.localStorage.setItem('mi_malla_hide_diagnostics', String(val))
+          } catch {
+            // ignore
+          }
         }
       })
       .catch(() => {})
@@ -319,6 +342,11 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const toggleHideDiagnosticsInMalla = async () => {
     setHideDiagnosticsInMalla(prev => {
       const next = !prev
+      try {
+        window.localStorage.setItem('mi_malla_hide_diagnostics', String(next))
+      } catch {
+        // ignore
+      }
       saveSetting('hideDiagnosticsInMalla', next).catch(() => {})
       return next
     })
@@ -342,11 +370,45 @@ export const CurriculumProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [focusedCourseCode])
 
-  // Theme toggle
+  // Theme persistence & DOM sync
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    const metaTheme = document.querySelector('meta[name="theme-color"]')
+    if (metaTheme) {
+      metaTheme.setAttribute('content', theme === 'dark' ? '#111827' : '#F8F7F4')
+    }
+  }, [theme])
+
+  React.useEffect(() => {
+    db.user_settings
+      .get('theme')
+      .then(rec => {
+        try {
+          if (window.localStorage.getItem('mi_malla_theme') !== null) return
+        } catch {
+          // ignore
+        }
+        if (rec && (rec.value === 'dark' || rec.value === 'light')) {
+          setTheme(rec.value)
+          try {
+            window.localStorage.setItem('mi_malla_theme', rec.value)
+          } catch {
+            // ignore
+          }
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(nextTheme)
-    document.documentElement.setAttribute('data-theme', nextTheme)
+    try {
+      window.localStorage.setItem('mi_malla_theme', nextTheme)
+    } catch {
+      // ignore
+    }
+    saveSetting('theme', nextTheme).catch(() => {})
   }
 
   // Toggle Course Status Action (with Cascading Rollback)

@@ -439,10 +439,25 @@ export const MallaPage: React.FC = () => {
     hideDiagnosticsInMalla
   } = useCurriculum()
 
-  // Compact panoramic view (defaults to true on desktop >= 1024px)
-  const [isCompactView, setIsCompactView] = useState<boolean>(
-    () => typeof window !== 'undefined' && window.innerWidth >= 1024
-  )
+  // Compact panoramic view (persisted in localStorage, defaults to true on desktop >= 1024px)
+  const [isCompactView, setIsCompactView] = useState<boolean>(() => {
+    try {
+      const saved = window.localStorage.getItem('mi_malla_compact_view')
+      if (saved === 'true') return true
+      if (saved === 'false') return false
+    } catch {
+      // ignore
+    }
+    return typeof window !== 'undefined' && window.innerWidth >= 1024
+  })
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('mi_malla_compact_view', String(isCompactView))
+    } catch {
+      // ignore
+    }
+  }, [isCompactView])
 
   // Zoom Level State (range 0.6x to 1.25x)
   const [zoomScale, setZoomScale] = React.useState<number>(1.0)
