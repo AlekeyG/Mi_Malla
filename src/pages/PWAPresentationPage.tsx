@@ -8,9 +8,11 @@ import {
   GraduationCap,
   Compass,
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  Download
 } from 'lucide-react'
 import { useCurriculum } from '../context/CurriculumContext'
+import { PWAInstallCard } from '../components/PWAInstallCard'
 
 const OFFICIAL_LINKS = [
   {
@@ -36,6 +38,11 @@ const OFFICIAL_LINKS = [
 export const PWAPresentationPage: React.FC = () => {
   const { setActiveTab } = useCurriculum()
   const [openSection, setOpenSection] = useState<string | null>(null)
+
+  const isInstalled =
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as unknown as { standalone?: boolean }).standalone === true)
 
   const toggleSection = (key: string) => {
     setOpenSection(prev => (prev === key ? null : key))
@@ -281,6 +288,69 @@ export const PWAPresentationPage: React.FC = () => {
 
       {/* Desplegables informativos */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* 0. Instalar aplicación */}
+        <div
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-card)',
+            overflow: 'hidden'
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => toggleSection('install')}
+            aria-expanded={openSection === 'install'}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              background: 'none',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              cursor: 'pointer',
+              color: 'var(--text-primary)',
+              textAlign: 'left'
+            }}
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700, flexWrap: 'wrap' }}>
+              <Download size={17} color="var(--color-terracotta)" />
+              Instalar aplicación
+              {isInstalled && (
+                <span
+                  style={{
+                    backgroundColor: '#ECFDF5',
+                    color: '#059669',
+                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    padding: '1px 7px',
+                    borderRadius: '9999px'
+                  }}
+                >
+                  Instalada
+                </span>
+              )}
+            </span>
+            <ChevronDown
+              size={17}
+              color="var(--color-steel)"
+              style={{
+                transform: openSection === 'install' ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease'
+              }}
+            />
+          </button>
+
+          {openSection === 'install' && (
+            <div style={{ padding: '0 12px 12px' }}>
+              <PWAInstallCard />
+            </div>
+          )}
+        </div>
+
         {/* 1. Instrucciones y modos de uso */}
         <div
           style={{
