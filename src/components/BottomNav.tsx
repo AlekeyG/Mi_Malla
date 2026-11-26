@@ -1,15 +1,49 @@
 import React from 'react'
-import { Home, Map, BarChart3, Settings, ArrowLeftRight, Check } from 'lucide-react'
+import { Home, Map, BarChart3, Settings, ArrowLeftRight, GitBranch, Check } from 'lucide-react'
 import { useCurriculum } from '../context/CurriculumContext'
 
 export const BottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, isOrganizeMode, setOrganizeMode } = useCurriculum()
+  const {
+    activeTab,
+    setActiveTab,
+    isOrganizeMode,
+    setOrganizeMode,
+    isRouteMode,
+    toggleRouteMode,
+    focusedCourseCode,
+    clearCourseChainInMalla
+  } = useCurriculum()
 
-  if (isOrganizeMode) {
+  const isMobileRouteActive =
+    focusedCourseCode !== null &&
+    typeof window !== 'undefined' &&
+    !window.matchMedia('(hover: hover)').matches
+
+  const showRouteNav = !isOrganizeMode && (isRouteMode || isMobileRouteActive)
+
+  if (isOrganizeMode || showRouteNav) {
+    const accent = isOrganizeMode ? 'var(--color-terracotta)' : 'var(--color-steel)'
+    const ModeIcon = isOrganizeMode ? ArrowLeftRight : GitBranch
+    const label = isOrganizeMode ? 'Modo edición' : 'Modo ruta'
+    const hint = isOrganizeMode
+      ? '· Arrastra cualquier materia'
+      : '· Toca una materia para ver requisitos'
+    const navAria = isOrganizeMode ? 'Indicador de modo edición' : 'Indicador de modo ruta'
+    const doneAria = isOrganizeMode ? 'Salir del modo edición' : 'Salir del modo ruta'
+    const handleDone = () => {
+      if (isOrganizeMode) {
+        setOrganizeMode(false)
+      } else if (isRouteMode) {
+        toggleRouteMode()
+      } else {
+        clearCourseChainInMalla()
+      }
+    }
+
     return (
       <nav
         className="glass-panel"
-        aria-label="Indicador de modo edición"
+        aria-label={navAria}
         style={{
           position: 'fixed',
           bottom: 0,
@@ -23,7 +57,7 @@ export const BottomNav: React.FC = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          borderTop: '2px solid var(--color-terracotta)'
+          borderTop: `2px solid ${accent}`
         }}
       >
         <div
@@ -37,27 +71,27 @@ export const BottomNav: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-            <ArrowLeftRight size={17} color="var(--color-terracotta)" style={{ flexShrink: 0 }} />
+            <ModeIcon size={17} color={accent} style={{ flexShrink: 0 }} />
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Modo edición
+                {label}
               </span>
               <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-                · Arrastra cualquier materia
+                {hint}
               </span>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={() => setOrganizeMode(false)}
-            aria-label="Salir del modo edición"
+            onClick={handleDone}
+            aria-label={doneAria}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
               padding: '6px 14px',
-              backgroundColor: 'var(--color-terracotta)',
+              backgroundColor: accent,
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '9999px',
