@@ -7,8 +7,15 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
+type WindowWithInstallPrompt = Window & {
+  __deferredPWAInstallPrompt?: BeforeInstallPromptEvent | null
+}
+
 export const PWAInstallCard: React.FC = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(() => {
+    if (typeof window === 'undefined') return null
+    return (window as WindowWithInstallPrompt).__deferredPWAInstallPrompt ?? null
+  })
   const [isStandalone, setIsStandalone] = useState<boolean>(() => {
 
     if (typeof window === 'undefined') return false
@@ -23,16 +30,25 @@ export const PWAInstallCard: React.FC = () => {
 
   useEffect(() => {
     // Capture beforeinstallprompt event (Android / Chrome / Edge)
-
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
-      setDeferredPrompt(e as BeforeInstallPromptEvent)
+      const promptEvent = e as BeforeInstallPromptEvent
+      ;(window as WindowWithInstallPrompt).__deferredPWAInstallPrompt = promptEvent
+      setDeferredPrompt(promptEvent)
+    }
+
+    const handleAppInstalled = () => {
+      ;(window as WindowWithInstallPrompt).__deferredPWAInstallPrompt = null
+      setDeferredPrompt(null)
+      setIsStandalone(true)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
@@ -41,6 +57,7 @@ export const PWAInstallCard: React.FC = () => {
     await deferredPrompt.prompt()
     const choice = await deferredPrompt.userChoice
     if (choice.outcome === 'accepted') {
+      ;(window as WindowWithInstallPrompt).__deferredPWAInstallPrompt = null
       setDeferredPrompt(null)
       setIsStandalone(true)
     }
@@ -182,16 +199,19 @@ export const PWAInstallCard: React.FC = () => {
           }}
         >
           <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-terracotta)' }}>
-            📱 Cómo instalar en Android / Chrome:
+            Cómo instalar según tu dispositivo:
           </span>
-          <ol style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.6 }}>
+          <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <li>
-              Toca el menú de <strong>3 puntos (⋮)</strong> en la esquina superior derecha del navegador.
+              <strong>Android (Chrome / Edge):</strong> toca el menú <strong>⋮</strong> → <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.
             </li>
             <li>
-              Selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a la pantalla principal"</strong>.
+              <strong>Computador (Chrome / Edge):</strong> haz clic en el ícono de <strong>Instalar</strong> en el lado derecho de la barra de direcciones.
             </li>
-          </ol>
+            <li>
+              <strong>iPhone / iPad (Safari):</strong> toca <strong>Compartir</strong> → <strong>"Agregar a la pantalla de inicio"</strong>.
+            </li>
+          </ul>
         </div>
       )}
     </div>
